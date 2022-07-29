@@ -86,12 +86,12 @@ function cube(p3_start, color){
 };
 
 function calcAllNormals(){
-	for(var i = 0; i < objects.length; i++){
+	for(var i = 0; i < objects.length; ++i){
 		var obj = objects[i];
 		var facets = obj.facets;
 		var points = obj.p3_points;
 		var normals = obj.normals;
-		for(var j = 0; j < facets.length; j++){
+		for(var j = 0; j < facets.length; ++j){
 			var cur_facet = facets[j];
 			var p0 = points[cur_facet[0]];
 			var p1 = p3_sub(points[cur_facet[1]], p0);
@@ -270,10 +270,10 @@ function transObject(object, mat3d_m){
 	var p3_shift = new p3(data[3], data[7], data[11]);
 	object.p3_center = p3_sum(object.p3_center, p3_shift);
 	
-	for(let i = 0; i < points.length; i++){
+	for(let i = 0; i < points.length; ++i){
 		points[i] = mat3d_mul_MatToVecWithoutShift(mat3d_m, points[i]);
 	}
-	for(let i = 0; i < normals.length; i++){
+	for(let i = 0; i < normals.length; ++i){
 		normals[i] = mat3d_mul_MatToVecWithoutShift(mat3d_m, normals[i]);
 	}
 }
@@ -302,6 +302,7 @@ function canvasMouseMove(evt){
 	}
 };
 
+//можно отлавливать только keydown and keyup
 function canvasKeyPress(evt){
 	var p3_vec = new p3(0,0,0);
 	var a = 0.5;
@@ -337,9 +338,7 @@ function canvasKeyPress(evt){
 }
 
 window.onload = function(){
-	CC = new color(255, 120, 255, 255);
-	YXbuffer = Array(sizeY);
-
+	CC = new color(0, 255, 0, 255);
 	canvas = document.getElementById('canvas');
 	context = canvas.getContext('2d');
 	outText = document.getElementById('outText');
@@ -349,14 +348,36 @@ window.onload = function(){
 	sizeY = canvas.height;
 	sizeX = canvas.width;
 	
-	const length = 12;
-	wBuffer = Array(12).fill(0);
+	
+	YXbuffer = Array(sizeY);
+	for(var i = 0; i < sizeY; ++i){
+		YXbuffer[i] = [];
+	}
+	//YXbuffer[5].push(3);
+	//alert(YXbuffer[5]);
+	
+	//const length = 12;
+	//wBuffer = Array(12).fill(0);
 	
 	//alert(arr);
 	
 	myImageData = context.createImageData(canvas.width, canvas.height);
 	buffer = myImageData.data;
 	
+	arr = [];
+	arr.push(new p2(1,1));
+	arr.push(new p2(150,100));
+	arr.push(new p2(250,100));
+	arr.push(new p2(345,125));
+	arr.push(new p2(345,75));
+	fillPoly(arr);
+	
+	
+	//CC = new color(255,0,0,255);
+	//arr.push(new p2(300,400));
+	//fillPoly(arr);
+	
+	//context.fill();
 	/*for(var i=canvas.height*12;i<canvas.height*12+canvas.width*4;i+=4){
 		buffer[i] = 123;
 		buffer[i+1] = 123;
@@ -364,24 +385,28 @@ window.onload = function(){
 		buffer[i+3] = 120;
 	}*/
 	
-	var point1 = new p2(35,35);
-	var point2 = new p2(255,255);
-	var t1;
+	//var point1 = new p2(350,350);
+	//var point2 = new p2(900,-35);
+	//line(point1.x, point1.y, point2.x, point2.y);
+/*	var t1;
 	var t2;
-	var sum = 0;
-	for(var k = 0;k < 20; k++){
-		t1 = performance.now();
-		for(var i = 0;i < 2000000; ++i){
-			line(35, 35, 255, 255);
-		}
-		t2 = performance.now() - t1;
-		sum += t2;
-	}
-	alert(sum/20);
+	var sum = 0;*/
+	//for(var k = 0;k < 20; k++){
+//		t1 = performance.now();
+		/*for(var i = 0;i < 2000000; ++i){
+			line(Math.random()*1200-300, Math.random()*1200-300, Math.random()*1200-300, Math.random()*1200-300);
+		}*/
+//		t2 = performance.now() - t1;
+//		sum += t2;
+	//}
+	//alert(sum/20);
 	context.putImageData(myImageData,0,0);
 	
-	context.fillRect(point1.x, point1.y, 1, 1);
-	context.fillRect(point2.x, point2.y, 1, 1);
+	//context.fillRect(point1.x, point1.y, 1, 1);
+	//context.fillRect(point2.x, point2.y, 1, 1);
+	for(var i = 0; i < arr.length; ++i){
+		context.fillRect(arr[i].x, arr[i].y, 2, 2);
+	}
 	context.stroke();
 	context.fill();
 	/*canvas.onmousedown = canvasMouseDown;
@@ -424,14 +449,11 @@ function fillBuffer(start, count, color) {
 	start <<= 2; count <<= 2;
 	var end = start + count;
 	for (var i = start; i < end; i += 4) {
-		buffer[i] = color.R;
-		buffer[i + 1] = color.G;
-		buffer[i + 2] = color.B;
-		buffer[i + 3] = color.A;
+		PutPixel(i, color);
 	}
 }
 
-function vLine(x1, y1, y2) {
+function vLine(x1, y1, y2){
 	if (y1 > y2) {
 		let tmp = y2;
 		y2 = y1;
@@ -442,22 +464,35 @@ function vLine(x1, y1, y2) {
 	y1 = (y1 > 0) ? y1 : 0; //max(y1, 0);
 	y2 = (y2 < (sizeY - 1)) ? y2 : (sizeY - 1); //min(y2, (sizeY - 1));
 	
+	//!переменные уже упорядочены, 
+	//!но внутри drawVLine находится 
+	//!лишняя проверка на порядок переменных
+	
+	//можно продублировать код, но без проверки
+	drawVLine(x1, y1, y2);
+}
+
+function drawVLine(x1, y1, y2) {
+	//в некоторых вызовах проверка лишняя
+	if (y1 > y2) {
+		let tmp = y2;
+		y2 = y1;
+		y1 = tmp;
+	}
+	
 	var a = (y1 * sizeX + x1) << 2; //*4
 	const aend = (y2 * sizeX + x1) << 2;
 	
-	buffer[a] = CC.R;
-	buffer[a + 1] = CC.G;
-	buffer[a + 2] = CC.B;
-	buffer[a + 3] = CC.A;
-
+	//ставим точку в начальной позиции
+	PutPixel(a, CC);
+	
 	const delta = sizeX << 2;
 	while (a != aend) {
 		a += delta;
-		
 		//можно развернуть и получить прирост (меньше процента),
 		//в тестах кеша хватало для хранения всей функции line,
 		//при реальном исполнении возможно кеш будет переполнен
-		//
+		//!проверить в тестах в реальном исполнении!
 		PutPixel(a, CC);
 	}
 }
@@ -525,22 +560,52 @@ function cut(x1, y1, x2, y2) {
 	return result;
 }
 
-function getParamsForLine(){
-	
+function getParamsForBrezenhem(x1, y1, x2, y2){
+	const t = y2 - y1;
+	const dy = (t >= 0) ? t : -t; //dy=abs(dy);
+	const dx = x2 - x1;
+
+	//!возможно заменить тип на const!
+	var d1, d2, d, z1, z2;
+	if (dy <= dx) {
+		d = (dy << 1) - dx; //2*dy-dx; просчитываем d1
+		d1 = (dy - dx) << 1; //2*(dy - dx);
+		d2 = dy << 1; // 2 * dy;
+		if (t > 0) {
+			z1 = (sizeX + 1);//y++, x++;
+			z2 = 1;//x++;
+		}
+		else /*if (t < 0)*/ {
+			z1 = (1 - sizeX); //y--, x++
+			z2 = 1; //x++
+		}
+	}
+	else {
+		d = (dx << 1) - dy; //2*dy-dx;
+		d1 = (dx - dy); //2*(dy - dx);
+		d2 = dx; // 2 * dy;
+		if (t > 0) {
+			z1 = (sizeX + 1);//y++, x++;
+			z2 = sizeX;//y++;
+		}
+		else /*if (t < 0)*/ {
+			z1 = (1 - sizeX);//y--, x++;
+			z2 = (-sizeX);//y--;
+		}
+	}
+	return {d1:d1, d2:d2, d:d, z1:z1, z2:z2};
 }
 
 function line(x1, y1, x2, y2) {
-	//float -> int
-	x1 <<= 0; y1 <<= 0;
-	x2 <<= 0; y2 <<= 0;
-	
-	//var res = cut(x1<<0, y1<<0, x2<<0, y2<<0);
-	var res = cut(x1, y1, x2, y2);
+	var res = cut(x1<<0, y1<<0, x2<<0, y2<<0);
 	if(!res.inside)return;
 	x1 = res.x1; y1 = res.y1;
 	x2 = res.x2; y2 = res.y2;
-	
-	//Algorithm Brezenhem
+	drawLine(x1, y1, x2, y2);
+}
+
+function drawLine(x1, y1, x2, y2){
+	//Algorithm Brezenhem	
 	if (x1 > x2) {
 		let tmp;
 		tmp = x1;
@@ -552,54 +617,22 @@ function line(x1, y1, x2, y2) {
 		y2 = tmp;
 	}
 	else if (x1 == x2) {
-		vLine(x1, y1, y2);
+		//т.к. clip уже был, то осталось отрисовать (не вызываем vLine)
+		drawVLine(x1, y1, y2);
 		return;
 	}
-	const t = y2 - y1;
-	const dy = (t >= 0) ? t : -t; //dy=abs(dy);
-	const dx = x2 - x1;
+	var a = (y1 * sizeX + x1) << 2;
+	
+	if(y1 == y2){
+		fillBuffer(a, x2 - x1 + 1, CC);
+		return;
+	}
 	const aend = (y2 * sizeX + x2) << 2;
-
-	//!возможно заменить тип на const!
-	var d1, d2, d, z1, z2, a = (y1 * sizeX + x1);
-	if (dy <= dx) {
-		d = (dy << 1) - dx; //2*dy-dx; просчитываем d1
-		d1 = (dy - dx) << 1; //2*(dy - dx);
-		d2 = dy << 1; // 2 * dy;
-		if (t > 0) {
-			z1 = (sizeX + 1);//y++, x++;
-			z2 = 1;//x++;
-		}
-		else if (t < 0) {
-			z1 = (1 - sizeX); //y--, x++
-			z2 = 1; //x++
-		}
-		else {
-			fillBuffer(a, dx + 1, CC);
-			return;
-		}
-	}
-	else {
-		d = (dx << 1) - dy; //2*dy-dx;
-		d1 = (dx - dy); //2*(dy - dx);
-		d2 = dx; // 2 * dy;
-		if (t > 0) {
-			z1 = (sizeX + 1);//y++, x++;
-			z2 = sizeX;//y++;
-		}
-		else if (t < 0) {
-			z1 = (1 - sizeX);//y--, x++;
-			z2 = (-sizeX);//y--;
-		}
-		//!возможна ли эта ветка?! 
-		//(возможна если dy = 0, но тогда она не может быть dy = 0 > dx, т.к.dx >= 0)
-		else {
-			//HLine(x1, y1, x2);
-			fillBuffer(a, dx + 1, CC);
-			return;
-		}
-	}
-	z1 <<= 2; z2 <<= 2; a <<= 2;
+	var params = getParamsForBrezenhem(x1, y1, x2, y2);
+	
+	var d = params.d;
+	const d1 = params.d1; const d2 = params.d2;
+	const z1 = params.z1 << 2; const z2 = params.z2 << 2;
 	
 	//ставим точку в начальной клетке d0
 	PutPixel(a, CC);
@@ -617,8 +650,148 @@ function line(x1, y1, x2, y2) {
 	}
 }
 
-function fillPoly(p3Poly_array){
+/*function vLineYXBuffer(x1, y1, y2){
 	
+}*/
+
+//помещает в YXbuffer крайнюю левую точку для каждого y,
+//кроме точки с минимальным y
+function fillYXBuffer(x1, y1, x2, y2){
+		//Algorithm Brezenhem
+	if(y1 == y2){
+		return;
+	}
+	if (x1 > x2) {
+		let tmp;
+		tmp = x1;
+		x1 = x2;
+		x2 = tmp;
+
+		tmp = y1;
+		y1 = y2;
+		y2 = tmp;
+	}
+	/*else if (x1 == x2) {
+		vLineYXBuffer(x1, y1, y2);
+		return;
+	}*/
+	
+	const t = y2 - y1;
+	const dy = (t >= 0) ? t : -t; //dy=abs(dy);
+	const dx = x2 - x1;
+
+	if (dy <= dx) {
+		var d = (dy << 1) - dx; //2*dy-dx;
+		const d1 = (dy - dx) << 1; //2*(dy - dx);
+		const d2 = dy << 1; // 2 * dy;
+		if (t > 0) {
+			YXbuffer[y1].push(x1);
+			while (y1 < y2 - 1) {
+				if (d > 0) {
+					x1++; y1++;
+					YXbuffer[y1].push(x1);
+					d += d1; //расчет следующей итерации
+				}
+				else {
+					x1++;
+					d += d2;
+				}
+			}
+			
+		}
+		else /*if (t < 0)*/ {
+			while (y1 > y2) {
+				if (d > 0) {
+					y1--;
+					x1++;
+					YXbuffer[y1].push(x1);
+					d += d1; //расчет следующей итерации
+				}
+				else {
+					x1++;
+					d += d2;
+				}
+			}
+		}
+	}
+	else {
+		var d = (dx << 1) - dy; //2*dy-dx;
+		const d1 = (dx - dy) << 1; //2*(dy - dx);
+		const d2 = dx << 1; // 2 * dy;
+		if (t > 0) {
+			YXbuffer[y1].push(x1);
+			while (y1 < y2 - 1) {
+				if (d > 0) {
+					x1++; y1++;
+					d += d1; //расчет следующей итерации
+				}
+				else {
+					y1++;
+					d += d2;
+				}
+				YXbuffer[y1].push(x1);
+			}
+		}
+		else /*if (t < 0)*/ {		
+			while (y1 > y2) {
+				if (d > 0) {
+					x1++; y1--;
+					d += d1; //расчет следующей итерации
+				}
+				else {
+					y1--;
+					d += d2;
+				}
+				YXbuffer[y1].push(x1);
+			}
+		}
+	}
+}
+//по возрастанию
+function sort(array){
+	var flag;
+	for(var i = 0; i < array.length; ++i){
+		flag = true;
+		for(var j = 1; j < array.length - i; ++j){
+			if(array[j - 1] > array[j]){
+				var tmp = array[j - 1];
+				array[j - 1] = array[j];
+				array[j] = tmp;
+				flag = false;
+			}
+		}
+		if(flag)break;
+	}
+}
+
+//!перед использованием обрезать полигон по экрану!
+//закрашивает внутреннюю область и контур с левой и верхней стороны
+//(правую и нижнюю сторону отрисовывают другие полигоны)
+function fillPoly(p2Poly_array){
+	//YX algorithm
+	var p2_point1 = p2Poly_array[p2Poly_array.length - 1];
+	var ymin, ymax;
+	ymax = ymin = p2_point1.y;
+	for(var i = 0; i < p2Poly_array.length; ++i){
+		p2_point2 = p2Poly_array[i];
+		if(p2_point2.y < ymin)ymin = p2_point2.y;
+		if(ymax < p2_point2.y)ymax = p2_point2.y;
+		fillYXBuffer(p2_point1.x, p2_point1.y, p2_point2.x, p2_point2.y);
+		p2_point1 = p2_point2;
+	}
+	
+	for(var y = ymin; y < ymax; y++){
+		var arr = YXbuffer[y];
+		sort(YXbuffer[y]);
+		//alert("y: " + y + " x: " + YXbuffer[y]);
+		for(var j = 0; j <= arr.length; j += 2){
+			fillBuffer(y*sizeX + arr[j], arr[j + 1] - arr[j], CC);
+		}
+	}
+	
+	for(var y = ymin; y <= ymax; ++y){
+		YXbuffer[y].length = 0;
+	}
 }
 
 function parseToScreen(p3_point){
@@ -665,6 +838,7 @@ function p3_assign(p3_point1, p3_point2){
 	
 }*/
 
+//можно передавать не индекс а сам обьект, экономия двух переменных
 function renderObject(index, mat3d_pre_trans){
 	//right version
 	/*var obj = objects[index];
@@ -732,7 +906,7 @@ function renderObject(index, mat3d_pre_trans){
 	var transCoord3d = [];
 	//!выше возможно образование дыр!
 	
-	for(var j = 0; j < facets.length; j++){
+	for(var j = 0; j < facets.length; ++j){
 		//возможно ли совместить mat3d_pre_trans с матрицей проецирования?
 		//!!!возможно ли использование одного number_point?
 		var cur_facet = facets[j];
@@ -770,7 +944,7 @@ function renderObject(index, mat3d_pre_trans){
 				poly2d.push(p2_point1);
 			}
 			
-			for(var k = 0; k < cur_facet.length; k++){
+			for(var k = 0; k < cur_facet.length; ++k){
 				var number_point2 = cur_facet[k];
 				if(transCoord3d[number_point2] == undefined){
 					p3_point2 = p3_sum(points[number_point2], obj.p3_center);
@@ -781,8 +955,8 @@ function renderObject(index, mat3d_pre_trans){
 					p3_point2 = transCoord3d[number_point2];
 				}
 				
-				
 				//возможен случай, когда одна из точек лежит на плоскости, то есть она будет дважды добавлена в poly2d
+				//вроде бы исправлено
 				if((p3_point2.z > h)^(p3_point1.z > h)){
 					var t = (h - p3_point1.z)/(p3_point2.z - p3_point1.z);
 					var delta = p3_sub(p3_point2, p3_point1);
@@ -827,7 +1001,7 @@ function renderObject(index, mat3d_pre_trans){
 
 
 /*function clearWBuffer(){
-	for(var i = 0;i < wBuffer.length;i++){
+	for(var i = 0; i < wBuffer.length; ++i){
 		//можно обращаться не поэлементно, а поадресно
 		wBuffer.length[i] = 0;
 		//var addr = wBuffer;
@@ -851,7 +1025,7 @@ function render(){
 	var transMatrix = mat3d_mul_MatToMat(Ry,T);
 	transMatrix = mat3d_mul_MatToMat(Rx, transMatrix);
 	
-	for(var i = 0; i < objects.length; i++){
+	for(var i = 0; i < objects.length; ++i){
 		renderObject(i, transMatrix);
 	}
 	context.stroke();
@@ -862,7 +1036,7 @@ function renderMap(){
 	mapContext.beginPath();
 	mapContext.strokeStyle = "black";
 	var mat1 = make3d_Ry(fi);
-	for(var i = 0; i < objects.length; i++){
+	for(var i = 0; i < objects.length; ++i){
 		var obj = objects[i];
 		var p3_vec = p3_sub(obj.p3_center, playerPos);
 		p3_vec = mat3d_mul_MatToVec(mat1, p3_vec);
